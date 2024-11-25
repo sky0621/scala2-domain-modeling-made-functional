@@ -8,6 +8,8 @@ object Main {
     val commandName = args(0)
     val parameters = args.drop(1)
 
+
+
     val command = CommandFactory.create(commandName, parameters)
     command match {
       case Some(c) => WorkflowFactory.create(c).execute()
