@@ -1,3 +1,7 @@
+package com.example.cv.executor.command
+
+import com.example.cv.CommandFactory
+
 object Main {
   def main(args: Array[String]): Unit = {
     if (args.length < 2) {
@@ -8,8 +12,7 @@ object Main {
     val commandName = args(0)
     val parameters = args.drop(1)
 
-    WorkflowFactory
-      .create(CommandFactory.create(commandName, parameters))
-      .execute()
+    val event = CommandFactory.create(commandName, parameters).execute()
+    println(event)
   }
 }

@@ -1,3 +1,5 @@
+package com.example.cv
+
 object WorkflowFactory {
   def create(command: Command[_]): Workflow =
     command match {
@@ -10,11 +12,11 @@ trait Workflow {
 }
 
 case class ApplyForCVRegistrationWorkflow(
-    initialCommand: ApplyForCVRegistrationCommand
+    applyForCVRegistration: ApplyForCVRegistrationCommand
 ) extends Workflow {
   def execute(): Unit = {
     println("----- Workflow start -----")
-    initialCommand.execute()
+    applyForCVRegistration.execute()
     println("----- Workflow end -----")
   }
 }

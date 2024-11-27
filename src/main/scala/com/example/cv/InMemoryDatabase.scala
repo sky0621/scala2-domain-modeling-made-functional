@@ -1,27 +1,27 @@
-import Model.UnvalidatedMailAddress
+package com.example.cv
+
+import cats.Applicative
 import cats.data.EitherT
+import com.example.cv.Model.UnvalidatedMailAddress
 
 import java.util.concurrent.atomic.AtomicInteger
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 object AppContext {
-  type DBResult[A] = EitherT[Future, String, A]
+  type DBResult[F[_], A] = EitherT[F, String, A]
 }
 
-class InMemoryDatabase[A] {
+class InMemoryDatabase[F[_]: Applicative, A] {
   import AppContext.DBResult
 
   private var storage: Map[Int, A] = Map.empty
   private val counter = new AtomicInteger(0)
 
-  def save(value: Option[A]): DBResult[Unit] =
+  def save(value: Option[A]): DBResult[F, Unit] =
     EitherT {
-      Future {
+      Applicative[F].pure {
         value match {
           case Some(v) => {
             val id = counter.incrementAndGet()
-            println(s"before save: $value")
             storage = storage + (id -> v)
             println(s"after save: $value")
             Right(())
@@ -31,8 +31,8 @@ class InMemoryDatabase[A] {
       }
     }
 
-  def get(id: Int): DBResult[A] = EitherT {
-    Future {
+  def get(id: Int): DBResult[F, A] = EitherT {
+    Applicative[F].pure {
       println(s"before get: $id")
       storage.get(id).toRight(s"Record with ID $id not found")
     }
@@ -40,6 +40,6 @@ class InMemoryDatabase[A] {
 }
 
 object InMemoryDatabase {
-  val unvalidatedMailAddressStorage =
-    new InMemoryDatabase[UnvalidatedMailAddress]()
+  def unvalidatedMailAddressStorage[F[_]: Applicative] =
+    new InMemoryDatabase[F, UnvalidatedMailAddress]()
 }
