@@ -1,3 +1,3 @@
 object Model {
-  case class UnvalidatedMailAddress(mailAddress: String)
+  case class UnvalidatedMailAddress(value: String)
 }

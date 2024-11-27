@@ -1,15 +1,14 @@
 import Model.UnvalidatedMailAddress
-import cats.effect.IO
 
 object CommandFactory {
   def create(
       commandName: String,
       parameters: Array[String]
-  ): Option[Command[_]] =
+  ): Command[_] =
     commandName match {
       case ApplyForCVRegistrationCommand.name =>
-        Some(ApplyForCVRegistrationCommand(parameters))
-      case _ => None
+        ApplyForCVRegistrationCommand(parameters)
+      case _ => throw new RuntimeException()
     }
 }
 
@@ -17,16 +16,16 @@ sealed trait Command[E <: Event] {
   def execute(): E
 }
 
-case class ApplyForCVRegistrationCommand(mailAddress: UnvalidatedMailAddress)
-    extends Command[AppliedForCVRegistrationEvent] {
+case class ApplyForCVRegistrationCommand(
+    maybeMailAddress: UnvalidatedMailAddress
+) extends Command[AppliedForCVRegistrationEvent] {
   override def execute(): AppliedForCVRegistrationEvent = {
-    println(s"call ApplyForCVRegistrationCommand: $mailAddress")
-    val program: IO[Unit] = for {
-      store <-
-        ApplyForCVRegistrationWorkflowKeyValueStore.unvalidatedMailAddressStore
-    } yield ()
-    program.unsafeRunSync()
-    AppliedForCVRegistrationEvent(mailAddress)
+    println(s"call ApplyForCVRegistrationCommand: $maybeMailAddress")
+    val mailOpt: Option[UnvalidatedMailAddress] =
+      if (maybeMailAddress.value.isBlank) None else Some(maybeMailAddress)
+    InMemoryDatabase.unvalidatedMailAddressStorage.save(mailOpt)
+    println("before create event")
+    AppliedForCVRegistrationEvent(maybeMailAddress)
   }
 }
 
@@ -34,6 +33,8 @@ case object ApplyForCVRegistrationCommand {
   val name: String = "applyForCVRegistration"
   def apply(parameters: Array[String]): ApplyForCVRegistrationCommand = {
     require(parameters.length == 1)
-    new ApplyForCVRegistrationCommand(UnvalidatedMailAddress(parameters.head))
+    new ApplyForCVRegistrationCommand(
+      UnvalidatedMailAddress(parameters.head)
+    )
   }
 }
