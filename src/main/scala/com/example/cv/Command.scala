@@ -1,10 +1,9 @@
 package com.example.cv
 import cats.Applicative
 import cats.data.EitherT
-import com.example.cv.Model.{InvalidMailAddress, UnvalidatedMailAddress, ValidatedMailAddress}
+import com.example.cv.Model._
 
 import scala.concurrent.ExecutionContext
-import scala.util.matching.Regex
 
 object CommandFactory {
   def create[F[_]: Applicative](
@@ -18,11 +17,19 @@ object CommandFactory {
         )
       case "verifyCVRegistration" =>
         VerifyCVRegistrationCommand[F](UnvalidatedMailAddress(parameters.head))
+      case "notifyApprovedCVRegistrationResult" =>
+        NotifyApprovedCVRegistrationResultCommand[F](
+          ValidatedMailAddress(parameters.head)
+        )
+      case "notifyRejectedCVRegistrationResult" =>
+        NotifyRejectedCVRegistrationResultCommand[F](
+          InvalidMailAddress(parameters.head)
+        )
       case _ => throw new RuntimeException()
     }
 }
 
-sealed trait Command[F[_], E <: Event] {
+trait Command[F[_], E <: Event] {
   def execute(): EitherT[F, String, E]
 }
 
@@ -42,19 +49,47 @@ case class VerifyCVRegistrationCommand[F[_]: Applicative](
     maybeMailAddress: UnvalidatedMailAddress
 )(implicit ec: ExecutionContext)
     extends Command[F, VerifiedCVRegistrationEvent] {
-  private val emailRegex: Regex =
-    "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$".r
 
   override def execute(): EitherT[F, String, VerifiedCVRegistrationEvent] =
-    if (emailRegex.matches(maybeMailAddress.value)) {
-      EitherT.rightT[F, String](
+    EitherT.rightT[F, String] {
+      if (MailAddress.is(maybeMailAddress)) {
         ApprovedCVRegistrationEvent(
           ValidatedMailAddress(maybeMailAddress.value)
         )
+      } else {
+        RejectedCVRegistrationEvent(
+          InvalidMailAddress(maybeMailAddress.value)
+        )
+      }
+    }
+}
+
+case class NotifyApprovedCVRegistrationResultCommand[F[_]: Applicative](
+    validatedMailAddress: ValidatedMailAddress
+)(implicit ec: ExecutionContext)
+    extends Command[F, NotifiedApprovedCVRegistrationEvent] {
+
+  override def execute()
+      : EitherT[F, String, NotifiedApprovedCVRegistrationEvent] =
+    EitherT.rightT[F, String] {
+      NotifiedApprovedCVRegistrationEvent(
+        validatedMailAddress,
+        ApprovedCVRegistrationMessage("CV registration application approved")
       )
-    } else {
-      EitherT.rightT[F, String](
-        RejectedCVRegistrationEvent(InvalidMailAddress(maybeMailAddress.value))
+    }
+}
+
+case class NotifyRejectedCVRegistrationResultCommand[F[_]: Applicative](
+    invalidMailAddress: InvalidMailAddress
+)(implicit ec: ExecutionContext)
+    extends Command[F, NotifiedRejectedCVRegistrationEvent] {
+
+  override def execute()
+      : EitherT[F, String, NotifiedRejectedCVRegistrationEvent] =
+    EitherT.rightT[F, String] {
+      NotifiedRejectedCVRegistrationEvent(
+        invalidMailAddress,
+        RejectedCVRegistrationMessage("CV registration application rejected")
       )
     }
 }

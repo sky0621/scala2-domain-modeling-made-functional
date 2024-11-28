@@ -1,42 +1,29 @@
 package com.example.cv
 
-import com.example.cv.Model.{InvalidMailAddress, UnvalidatedMailAddress, ValidatedMailAddress}
+import com.example.cv.Model._
 
-sealed trait Event {
-  def name: String
-}
+trait Event
 
 case class AppliedForCVRegistrationEvent(
     maybeMailAddress: UnvalidatedMailAddress
-) extends Event {
-  override def name: String = "appliedForCVRegistration"
-}
-
-case object AppliedForCVRegistrationEvent {
-  def apply(maybeMailAddress: UnvalidatedMailAddress) =
-    new AppliedForCVRegistrationEvent(maybeMailAddress)
-}
+) extends Event
 
 trait VerifiedCVRegistrationEvent extends Event
 
 case class ApprovedCVRegistrationEvent(
     validatedMailAddress: ValidatedMailAddress
-) extends VerifiedCVRegistrationEvent {
-  override def name: String = "approvedCVRegistration"
-}
-
-case object ApprovedCVRegistrationEvent {
-  def apply(validatedMailAddress: ValidatedMailAddress) =
-    new ApprovedCVRegistrationEvent(validatedMailAddress)
-}
+) extends VerifiedCVRegistrationEvent
 
 case class RejectedCVRegistrationEvent(
     invalidMailAddress: InvalidMailAddress
-) extends VerifiedCVRegistrationEvent {
-  override def name: String = "rejectedCVRegistration"
-}
+) extends VerifiedCVRegistrationEvent
 
-case object RejectedCVRegistrationEvent {
-  def apply(invalidMailAddress: InvalidMailAddress) =
-    new RejectedCVRegistrationEvent(invalidMailAddress)
-}
+case class NotifiedApprovedCVRegistrationEvent(
+    validatedMailAddress: ValidatedMailAddress,
+    approvedCVRegistrationMessage: ApprovedCVRegistrationMessage
+) extends Event
+
+case class NotifiedRejectedCVRegistrationEvent(
+    invalidMailAddress: InvalidMailAddress,
+    rejectedCVRegistrationMessage: RejectedCVRegistrationMessage
+) extends Event
