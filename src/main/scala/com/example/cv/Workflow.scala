@@ -1,9 +1,10 @@
 package com.example.cv
 
 object WorkflowFactory {
-  def create(command: Command[_]): Workflow =
+  def create[F[_]](command: Command[F, _]): Workflow =
     command match {
-      case c: ApplyForCVRegistrationCommand => ApplyForCVRegistrationWorkflow(c)
+      case c: ApplyForCVRegistrationCommand[F] =>
+        ApplyForCVRegistrationWorkflow(c)
     }
 }
 
@@ -11,17 +12,12 @@ trait Workflow {
   def execute(): Unit
 }
 
-case class ApplyForCVRegistrationWorkflow(
-    applyForCVRegistration: ApplyForCVRegistrationCommand
+case class ApplyForCVRegistrationWorkflow[F[_]](
+    applyForCVRegistration: ApplyForCVRegistrationCommand[F]
 ) extends Workflow {
   def execute(): Unit = {
     println("----- Workflow start -----")
     applyForCVRegistration.execute()
     println("----- Workflow end -----")
   }
-}
-
-object ApplyForCVRegistrationWorkflow {
-  def apply(command: ApplyForCVRegistrationCommand) =
-    new ApplyForCVRegistrationWorkflow(command)
 }

@@ -7,15 +7,17 @@ import scala.concurrent.ExecutionContext
 import scala.util.matching.Regex
 
 object CommandFactory {
-  def create(
+  def create[F[_]: Applicative](
       commandName: String,
       parameters: Array[String]
-  )(implicit ec: ExecutionContext): Command[_, _] =
+  )(implicit ec: ExecutionContext): Command[F, _] =
     commandName match {
       case "applyForCVRegistration" =>
-        ApplyForCVRegistrationCommand(UnvalidatedMailAddress(parameters.head))
+        ApplyForCVRegistrationCommand[F](
+          UnvalidatedMailAddress(parameters.head)
+        )
       case "verifyCVRegistration" =>
-        VerifyCVRegistrationCommand(UnvalidatedMailAddress(parameters.head))
+        VerifyCVRegistrationCommand[F](UnvalidatedMailAddress(parameters.head))
       case _ => throw new RuntimeException()
     }
 }
@@ -29,10 +31,9 @@ case class ApplyForCVRegistrationCommand[F[_]: Applicative](
 )(implicit ec: ExecutionContext)
     extends Command[F, AppliedForCVRegistrationEvent] {
   override def execute(): EitherT[F, String, AppliedForCVRegistrationEvent] = {
-    val mailOpt: Option[UnvalidatedMailAddress] =
-      if (maybeMailAddress.value.isBlank) None else Some(maybeMailAddress)
+    val mailOpt = Option.when(maybeMailAddress.value.nonEmpty)(maybeMailAddress)
     for {
-      _ <- InMemoryDatabase.unvalidatedMailAddressStorage.save(mailOpt)
+      _ <- InMemoryDatabase.unvalidatedMailAddressStorage[F].save(mailOpt)
     } yield AppliedForCVRegistrationEvent(maybeMailAddress)
   }
 }
