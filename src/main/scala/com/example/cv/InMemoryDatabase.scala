@@ -23,7 +23,6 @@ class InMemoryDatabase[F[_]: Applicative, A] {
           case Some(v) => {
             val id = counter.incrementAndGet()
             storage = storage + (id -> v)
-            println(s"after save: $value")
             Right(())
           }
           case None => Left("No value provided to save")
@@ -33,7 +32,6 @@ class InMemoryDatabase[F[_]: Applicative, A] {
 
   def get(id: Int): DBResult[F, A] = EitherT {
     Applicative[F].pure {
-      println(s"before get: $id")
       storage.get(id).toRight(s"Record with ID $id not found")
     }
   }

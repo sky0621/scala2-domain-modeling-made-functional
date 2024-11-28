@@ -18,12 +18,14 @@ case class RejectedCVRegistrationEvent(
     invalidMailAddress: InvalidMailAddress
 ) extends VerifiedCVRegistrationEvent
 
+trait NotifiedCVRegistrationEvent extends Event
+
 case class NotifiedApprovedCVRegistrationEvent(
     validatedMailAddress: ValidatedMailAddress,
     approvedCVRegistrationMessage: ApprovedCVRegistrationMessage
-) extends Event
+) extends NotifiedCVRegistrationEvent
 
 case class NotifiedRejectedCVRegistrationEvent(
     invalidMailAddress: InvalidMailAddress,
     rejectedCVRegistrationMessage: RejectedCVRegistrationMessage
-) extends Event
+) extends NotifiedCVRegistrationEvent
