@@ -1,9 +1,9 @@
 package com.example.cv.executor.workflow
 
-import com.example.cv.{Event, WorkflowFactory}
+import com.example.cv.WorkflowFactory
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -15,12 +15,15 @@ object Main {
     val workflowName = args(0)
     val parameters = args.drop(1)
 
-    for {
-      events <- WorkflowFactory
-        .create[Future, Event](workflowName, parameters)
-        .execute()
-    } yield {
-      println(events)
+    val workflow =
+      WorkflowFactory.create(workflowName, parameters)
+    workflow.execute().value.onComplete {
+      case Success(Right(events)) =>
+        println(s"Workflow succeeded: $events")
+      case Success(Left(error)) =>
+        println(s"Workflow failed with error: $error")
+      case Failure(exception) =>
+        println(s"Workflow execution exception: $exception")
     }
   }
 }

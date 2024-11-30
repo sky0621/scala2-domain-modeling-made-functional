@@ -42,26 +42,43 @@ case class ApplyForCVRegistrationCommand[F[_]: Applicative](
     for {
       _ <- InMemoryDatabase.unvalidatedMailAddressStorage[F].save(mailOpt)
     } yield AppliedForCVRegistrationEvent(maybeMailAddress)
+//    EitherT.rightT[F, String](AppliedForCVRegistrationEvent(maybeMailAddress))
   }
 }
 
+case class ApproveCVRegistrationCommand[F[_]: Applicative](
+    maybeMailAddress: UnvalidatedMailAddress
+)(implicit ec: ExecutionContext)
+    extends Command[F, ApprovedCVRegistrationEvent] {
+
+  override def execute(): EitherT[F, String, ApprovedCVRegistrationEvent] = {
+    EitherT.rightT[F, String] {
+      ApprovedCVRegistrationEvent(
+        ValidatedMailAddress(maybeMailAddress.value)
+      )
+    }
+  }
+}
 case class VerifyCVRegistrationCommand[F[_]: Applicative](
     maybeMailAddress: UnvalidatedMailAddress
 )(implicit ec: ExecutionContext)
     extends Command[F, VerifiedCVRegistrationEvent] {
 
-  override def execute(): EitherT[F, String, VerifiedCVRegistrationEvent] =
-    EitherT.rightT[F, String] {
-      if (MailAddress.is(maybeMailAddress)) {
+  override def execute(): EitherT[F, String, VerifiedCVRegistrationEvent] = {
+    if (MailAddress.is(maybeMailAddress)) {
+      EitherT.rightT[F, String] {
         ApprovedCVRegistrationEvent(
           ValidatedMailAddress(maybeMailAddress.value)
         )
-      } else {
+      }
+    } else {
+      EitherT.rightT[F, String] {
         RejectedCVRegistrationEvent(
           InvalidMailAddress(maybeMailAddress.value)
         )
       }
     }
+  }
 }
 
 case class NotifyApprovedCVRegistrationResultCommand[F[_]: Applicative](
