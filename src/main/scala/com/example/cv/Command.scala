@@ -33,6 +33,7 @@ trait Command[F[_], E <: Event] {
   def execute(): EitherT[F, String, E]
 }
 
+// CV登録を申請する
 case class ApplyForCVRegistrationCommand[F[_]: Applicative](
     maybeMailAddress: UnvalidatedMailAddress
 )(implicit ec: ExecutionContext)
@@ -42,23 +43,10 @@ case class ApplyForCVRegistrationCommand[F[_]: Applicative](
     for {
       _ <- InMemoryDatabase.unvalidatedMailAddressStorage[F].save(mailOpt)
     } yield AppliedForCVRegistrationEvent(maybeMailAddress)
-//    EitherT.rightT[F, String](AppliedForCVRegistrationEvent(maybeMailAddress))
   }
 }
 
-case class ApproveCVRegistrationCommand[F[_]: Applicative](
-    maybeMailAddress: UnvalidatedMailAddress
-)(implicit ec: ExecutionContext)
-    extends Command[F, ApprovedCVRegistrationEvent] {
-
-  override def execute(): EitherT[F, String, ApprovedCVRegistrationEvent] = {
-    EitherT.rightT[F, String] {
-      ApprovedCVRegistrationEvent(
-        ValidatedMailAddress(maybeMailAddress.value)
-      )
-    }
-  }
-}
+// CV登録申請内容を検証する
 case class VerifyCVRegistrationCommand[F[_]: Applicative](
     maybeMailAddress: UnvalidatedMailAddress
 )(implicit ec: ExecutionContext)
@@ -81,6 +69,7 @@ case class VerifyCVRegistrationCommand[F[_]: Applicative](
   }
 }
 
+// CV登録申請承認結果を通知する
 case class NotifyApprovedCVRegistrationResultCommand[F[_]: Applicative](
     validatedMailAddress: ValidatedMailAddress
 )(implicit ec: ExecutionContext)
@@ -96,6 +85,7 @@ case class NotifyApprovedCVRegistrationResultCommand[F[_]: Applicative](
     }
 }
 
+// CV登録申請拒否結果を通知する
 case class NotifyRejectedCVRegistrationResultCommand[F[_]: Applicative](
     invalidMailAddress: InvalidMailAddress
 )(implicit ec: ExecutionContext)

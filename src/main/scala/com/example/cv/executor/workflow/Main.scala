@@ -2,8 +2,9 @@ package com.example.cv.executor.workflow
 
 import com.example.cv.WorkflowFactory
 
+import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{Failure, Success}
+import scala.concurrent.duration.DurationInt
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -17,13 +18,11 @@ object Main {
 
     val workflow =
       WorkflowFactory.create(workflowName, parameters)
-    workflow.execute().value.onComplete {
-      case Success(Right(events)) =>
-        println(s"Workflow succeeded: $events")
-      case Success(Left(error)) =>
-        println(s"Workflow failed with error: $error")
-      case Failure(exception) =>
-        println(s"Workflow execution exception: $exception")
+
+    for {
+      results <- Await.result(workflow.execute().value, 3.seconds)
+    } yield {
+      results.foreach(println)
     }
   }
 }

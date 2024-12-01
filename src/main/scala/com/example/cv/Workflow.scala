@@ -32,30 +32,27 @@ case class ApplyForCVRegistrationWorkflow(
     for {
       appliedForCVRegistrationEvent <-
         ApplyForCVRegistrationCommand[Future](maybeMailAddress).execute()
-      _ <- EitherT.rightT[Future, String] {
-        println(appliedForCVRegistrationEvent)
-      }
 
       verifiedCVRegistrationEvent <-
-        ApproveCVRegistrationCommand[Future](
+        VerifyCVRegistrationCommand[Future](
           appliedForCVRegistrationEvent.maybeMailAddress
         ).execute()
 
-//      notifiedCVRegistrationEvent <- verifiedCVRegistrationEvent match {
-//        case ApprovedCVRegistrationEvent(validatedMailAddress) =>
-//          NotifyApprovedCVRegistrationResultCommand[Future](
-//            validatedMailAddress
-//          )
-//            .execute()
-//        case RejectedCVRegistrationEvent(invalidMailAddress) =>
-//          NotifyRejectedCVRegistrationResultCommand[Future](invalidMailAddress)
-//            .execute()
-//      }
+      notifiedCVRegistrationEvent <- verifiedCVRegistrationEvent match {
+        case ApprovedCVRegistrationEvent(validatedMailAddress) =>
+          NotifyApprovedCVRegistrationResultCommand[Future](
+            validatedMailAddress
+          )
+            .execute()
+        case RejectedCVRegistrationEvent(invalidMailAddress) =>
+          NotifyRejectedCVRegistrationResultCommand[Future](invalidMailAddress)
+            .execute()
+      }
     } yield {
       Seq(
         appliedForCVRegistrationEvent,
-        verifiedCVRegistrationEvent
-//        notifiedCVRegistrationEvent
+        verifiedCVRegistrationEvent,
+        notifiedCVRegistrationEvent
       )
     }
   }
