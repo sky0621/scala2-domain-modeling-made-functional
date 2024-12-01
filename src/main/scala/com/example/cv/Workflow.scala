@@ -1,51 +1,52 @@
 package com.example.cv
 
+import cats.Monad
 import cats.data.EitherT
 import com.example.cv.Model.UnvalidatedMailAddress
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 object WorkflowFactory {
-  def create(
+  def create[F[_]: Monad](
       workflowName: String,
       parameters: Array[String]
   )(implicit
       ec: ExecutionContext
-  ): Workflow =
+  ): Workflow[F] =
     workflowName match {
       case "applyForCVRegistration" =>
-        ApplyForCVRegistrationWorkflow(
+        ApplyForCVRegistrationWorkflow[F](
           UnvalidatedMailAddress(parameters.head)
         )
     }
 }
 
-trait Workflow {
-  def execute(): EitherT[Future, String, Seq[Event]]
+trait Workflow[F[_]] {
+  def execute(): EitherT[F, String, Seq[Event]]
 }
 
-case class ApplyForCVRegistrationWorkflow(
+case class ApplyForCVRegistrationWorkflow[F[_]: Monad](
     maybeMailAddress: UnvalidatedMailAddress
 )(implicit ec: ExecutionContext)
-    extends Workflow {
-  def execute(): EitherT[Future, String, Seq[Event]] = {
+    extends Workflow[F] {
+  def execute(): EitherT[F, String, Seq[Event]] = {
     for {
       appliedForCVRegistrationEvent <-
-        ApplyForCVRegistrationCommand[Future](maybeMailAddress).execute()
+        ApplyForCVRegistrationCommand[F](maybeMailAddress).execute()
 
       verifiedCVRegistrationEvent <-
-        VerifyCVRegistrationCommand[Future](
+        VerifyCVRegistrationCommand[F](
           appliedForCVRegistrationEvent.maybeMailAddress
         ).execute()
 
       notifiedCVRegistrationEvent <- verifiedCVRegistrationEvent match {
         case ApprovedCVRegistrationEvent(validatedMailAddress) =>
-          NotifyApprovedCVRegistrationResultCommand[Future](
+          NotifyApprovedCVRegistrationResultCommand[F](
             validatedMailAddress
           )
             .execute()
         case RejectedCVRegistrationEvent(invalidMailAddress) =>
-          NotifyRejectedCVRegistrationResultCommand[Future](invalidMailAddress)
+          NotifyRejectedCVRegistrationResultCommand[F](invalidMailAddress)
             .execute()
       }
     } yield {

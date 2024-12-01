@@ -2,9 +2,9 @@ package com.example.cv.executor.workflow
 
 import com.example.cv.WorkflowFactory
 
-import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.DurationInt
+import scala.concurrent.{Await, Future}
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -17,7 +17,7 @@ object Main {
     val parameters = args.drop(1)
 
     val workflow =
-      WorkflowFactory.create(workflowName, parameters)
+      WorkflowFactory.create[Future](workflowName, parameters)
 
     for {
       results <- Await.result(workflow.execute().value, 3.seconds)
