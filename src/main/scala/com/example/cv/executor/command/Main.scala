@@ -1,6 +1,6 @@
 package com.example.cv.executor.command
 
-import com.example.cv.CommandFactory
+import com.example.cv.domain.CommandFactory
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

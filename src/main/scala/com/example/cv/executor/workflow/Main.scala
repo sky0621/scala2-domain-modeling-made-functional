@@ -1,6 +1,6 @@
 package com.example.cv.executor.workflow
 
-import com.example.cv.WorkflowFactory
+import com.example.cv.workflow.WorkflowFactory
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.DurationInt

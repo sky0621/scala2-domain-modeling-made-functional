@@ -1,6 +1,6 @@
-package com.example.cv
+package com.example.cv.domain
 
-import com.example.cv.Model.UnvalidatedMailAddress
+import com.example.cv.domain.Model.UnvalidatedMailAddress
 
 import scala.util.matching.Regex
 

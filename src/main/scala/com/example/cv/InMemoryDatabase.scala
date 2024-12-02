@@ -2,7 +2,7 @@ package com.example.cv
 
 import cats.Applicative
 import cats.data.EitherT
-import com.example.cv.Model.UnvalidatedMailAddress
+import com.example.cv.domain.Model.UnvalidatedMailAddress
 
 import java.util.concurrent.atomic.AtomicInteger
 

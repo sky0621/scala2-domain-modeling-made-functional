@@ -1,7 +1,9 @@
-package com.example.cv
+package com.example.cv.domain
+
 import cats.Applicative
 import cats.data.EitherT
-import com.example.cv.Model._
+import com.example.cv.InMemoryDatabase
+import com.example.cv.domain.Model._
 
 import scala.concurrent.ExecutionContext
 
