@@ -8,5 +8,6 @@ libraryDependencies ++= Seq(
   "org.typelevel" %% "cats-effect" % "3.5.2",
   "com.typesafe.slick" %% "slick" % "3.5.2",
   "com.typesafe.slick" %% "slick-hikaricp" % "3.5.2",
+  "org.xerial" % "sqlite-jdbc" % "3.47.1.0",
   "org.slf4j" % "slf4j-nop" % "2.0.16"
 )
