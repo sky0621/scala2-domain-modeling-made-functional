@@ -7,33 +7,23 @@ import com.example.cv.domain._
 
 import scala.concurrent.ExecutionContext
 
-object WorkflowFactory {
-  def create[F[_]: Monad](
-      workflowName: String,
-      parameters: Array[String]
-  )(implicit
-      ec: ExecutionContext
-  ): Workflow[F] =
-    workflowName match {
-      case "applyForCVRegistration" =>
-        ApplyForCVRegistrationWorkflow[F](
-          UnvalidatedMailAddress(parameters.head)
-        )
-    }
+trait Workflow[F[_], I <: Input] {
+  def execute(input: I): EitherT[F, String, Output]
 }
 
-trait Workflow[F[_]] {
-  def execute(): EitherT[F, String, Seq[Event]]
-}
-
-case class ApplyForCVRegistrationWorkflow[F[_]: Monad](
-    maybeMailAddress: UnvalidatedMailAddress
-)(implicit ec: ExecutionContext)
-    extends Workflow[F] {
-  def execute(): EitherT[F, String, Seq[Event]] = {
+// FIXME: ec を除去！（ ec を隠蔽する関数を外から渡す方式にする）
+// FIXME: Left は String でなく専用のエラークラスを検討！
+class ApplyForCVRegistrationWorkflow[
+    F[_]: Monad
+](implicit
+    ec: ExecutionContext
+) extends Workflow[F, ApplyForCVRegistrationInput] {
+  def execute(
+      input: ApplyForCVRegistrationInput
+  ): EitherT[F, String, Output] = {
     for {
       appliedForCVRegistrationEvent <-
-        ApplyForCVRegistrationCommand[F](maybeMailAddress).execute()
+        ApplyForCVRegistrationCommand[F](input.maybeMailAddress).execute()
 
       verifiedCVRegistrationEvent <-
         VerifyCVRegistrationCommand[F](
@@ -51,11 +41,23 @@ case class ApplyForCVRegistrationWorkflow[F[_]: Monad](
             .execute()
       }
     } yield {
-      Seq(
-        appliedForCVRegistrationEvent,
-        verifiedCVRegistrationEvent,
-        notifiedCVRegistrationEvent
+      ApplyForCVRegistrationOutput(
+        Seq(
+          appliedForCVRegistrationEvent,
+          verifiedCVRegistrationEvent,
+          notifiedCVRegistrationEvent
+        )
       )
     }
   }
 }
+
+trait Input
+
+case class ApplyForCVRegistrationInput(
+    maybeMailAddress: UnvalidatedMailAddress
+) extends Input
+
+trait Output
+
+case class ApplyForCVRegistrationOutput(events: Seq[Event]) extends Output
