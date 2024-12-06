@@ -1,7 +1,7 @@
 package com.example.cv.domain
 
 import com.example.cv.domain.MailAddress.{InvalidMailAddress, UnvalidatedMailAddress, ValidatedMailAddress}
-import com.example.cv.domain.Model._
+import com.example.cv.domain.Message._
 
 trait Event
 
