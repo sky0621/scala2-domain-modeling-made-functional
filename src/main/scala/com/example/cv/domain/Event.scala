@@ -1,11 +1,15 @@
 package com.example.cv.domain
 
+import com.example.cv.domain.Birthday.UnvalidatedBirthday
 import com.example.cv.domain.MailAddress.{InvalidMailAddress, UnvalidatedMailAddress, ValidatedMailAddress}
 import com.example.cv.domain.Message._
+import com.example.cv.domain.Name.UnvalidatedName
 
 trait Event
 
 case class AppliedForCVRegistrationEvent(
+    maybeName: UnvalidatedName,
+    maybeBirthday: UnvalidatedBirthday,
     maybeMailAddress: UnvalidatedMailAddress
 ) extends Event
 

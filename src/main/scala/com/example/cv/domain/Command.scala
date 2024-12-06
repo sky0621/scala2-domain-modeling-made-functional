@@ -14,22 +14,33 @@ trait Command[F[_], E <: Event] {
   def execute(): EitherT[F, DomainError, E]
 }
 
+object SimpleCommand {
+  type ExecuteApplyForCVRegistration[F[_]] = EventHistoryRepository.Save[F] => (
+      UnvalidatedName,
+      UnvalidatedBirthday,
+      UnvalidatedMailAddress
+  ) => EitherT[F, DomainError, AppliedForCVRegistrationEvent]
+}
+
 // CV登録を申請する
 case class ApplyForCVRegistrationCommand[F[_]: Applicative](
-    maybeName: UnvalidatedName,
-    maybeBirthday: UnvalidatedBirthday,
-    maybeMailAddress: UnvalidatedMailAddress
-)(implicit ec: ExecutionContext)
-    extends Command[F, AppliedForCVRegistrationEvent] {
-  override def execute()
-      : EitherT[F, DomainError, AppliedForCVRegistrationEvent] = {
+) {
+  def execute(
+      maybeName: UnvalidatedName,
+      maybeBirthday: UnvalidatedBirthday,
+      maybeMailAddress: UnvalidatedMailAddress
+  ): EitherT[F, DomainError, AppliedForCVRegistrationEvent] = {
     val mailOpt = Option.when(maybeMailAddress.value.nonEmpty)(maybeMailAddress)
     for {
       _ <- InMemoryDatabase
         .unvalidatedMailAddressStorage[F]
         .save(mailOpt)
         .leftMap[DomainError](e => UnexpectedError(e))
-    } yield AppliedForCVRegistrationEvent(maybeMailAddress)
+    } yield AppliedForCVRegistrationEvent(
+      maybeName,
+      maybeBirthday,
+      maybeMailAddress
+    )
   }
 }
 

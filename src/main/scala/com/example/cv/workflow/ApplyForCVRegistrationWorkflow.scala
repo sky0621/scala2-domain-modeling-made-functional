@@ -25,11 +25,11 @@ class ApplyForCVRegistrationWorkflow[
   ): EitherT[F, DomainError, ApplyForCVRegistrationOutputDto] = {
     for {
       appliedForCVRegistrationEvent <-
-        ApplyForCVRegistrationCommand[F](
+        ApplyForCVRegistrationCommand[F].execute(
           input.maybeName,
           input.maybeBirthday,
           input.maybeMailAddress
-        ).execute()
+        )
 
       verifiedCVRegistrationEvent <-
         VerifyCVRegistrationCommand[F](
