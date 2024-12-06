@@ -2,7 +2,7 @@ package com.example.cv.api
 
 import cats.data.EitherT
 import cats.instances.future._
-import com.example.cv.domain.Model.UnvalidatedMailAddress
+import com.example.cv.workflow.{ApplyForCVRegistrationInputDto, ApplyForCVRegistrationOutputDto, ApplyForCVRegistrationWorkflow}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -12,8 +12,11 @@ class ApplyForCVRegistrationApi extends Api[Future, ApiError, Response] {
   )(implicit ec: ExecutionContext): EitherT[Future, ApiError, Response] = {
     for {
       parsedParameter <- parse(request.values)
-      dto = ApplyForCVRegistrationDto(parsedParameter)
-    } yield ApplyForCVRegistrationResponse(parsedParameter.nonEmpty)
+      inputDto = ApplyForCVRegistrationInputDto(parsedParameter)
+      outputDto <- new ApplyForCVRegistrationWorkflow()
+        .execute(inputDto)
+        .leftMap[ApiError](e => InternalServerError(e.message))
+    } yield ApplyForCVRegistrationResponse(outputDto)
   }
 
   private def parse(
@@ -29,11 +32,6 @@ class ApplyForCVRegistrationApi extends Api[Future, ApiError, Response] {
   }
 }
 
-case class ApplyForCVRegistrationDto(maybeMailAddress: UnvalidatedMailAddress)
-    extends AnyVal
-object ApplyForCVRegistrationDto {
-  def apply(value: String): ApplyForCVRegistrationDto =
-    new ApplyForCVRegistrationDto(UnvalidatedMailAddress(value))
-}
-
-case class ApplyForCVRegistrationResponse(isSuccess: Boolean) extends Response
+case class ApplyForCVRegistrationResponse(
+    outputDto: ApplyForCVRegistrationOutputDto
+) extends Response

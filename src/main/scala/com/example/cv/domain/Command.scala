@@ -32,7 +32,7 @@ object CommandFactory {
 }
 
 trait Command[F[_], E <: Event] {
-  def execute(): EitherT[F, String, E]
+  def execute(): EitherT[F, DomainError, E]
 }
 
 // CV登録を申請する
@@ -40,10 +40,14 @@ case class ApplyForCVRegistrationCommand[F[_]: Applicative](
     maybeMailAddress: UnvalidatedMailAddress
 )(implicit ec: ExecutionContext)
     extends Command[F, AppliedForCVRegistrationEvent] {
-  override def execute(): EitherT[F, String, AppliedForCVRegistrationEvent] = {
+  override def execute()
+      : EitherT[F, DomainError, AppliedForCVRegistrationEvent] = {
     val mailOpt = Option.when(maybeMailAddress.value.nonEmpty)(maybeMailAddress)
     for {
-      _ <- InMemoryDatabase.unvalidatedMailAddressStorage[F].save(mailOpt)
+      _ <- InMemoryDatabase
+        .unvalidatedMailAddressStorage[F]
+        .save(mailOpt)
+        .leftMap[DomainError](e => UnexpectedError(e))
     } yield AppliedForCVRegistrationEvent(maybeMailAddress)
   }
 }
@@ -54,15 +58,16 @@ case class VerifyCVRegistrationCommand[F[_]: Applicative](
 )(implicit ec: ExecutionContext)
     extends Command[F, VerifiedCVRegistrationEvent] {
 
-  override def execute(): EitherT[F, String, VerifiedCVRegistrationEvent] = {
+  override def execute()
+      : EitherT[F, DomainError, VerifiedCVRegistrationEvent] = {
     if (MailAddress.is(maybeMailAddress)) {
-      EitherT.rightT[F, String] {
+      EitherT.rightT[F, DomainError] {
         ApprovedCVRegistrationEvent(
           ValidatedMailAddress(maybeMailAddress.value)
         )
       }
     } else {
-      EitherT.rightT[F, String] {
+      EitherT.rightT[F, DomainError] {
         RejectedCVRegistrationEvent(
           InvalidMailAddress(maybeMailAddress.value)
         )
@@ -78,8 +83,8 @@ case class NotifyApprovedCVRegistrationResultCommand[F[_]: Applicative](
     extends Command[F, NotifiedApprovedCVRegistrationEvent] {
 
   override def execute()
-      : EitherT[F, String, NotifiedApprovedCVRegistrationEvent] =
-    EitherT.rightT[F, String] {
+      : EitherT[F, DomainError, NotifiedApprovedCVRegistrationEvent] =
+    EitherT.rightT[F, DomainError] {
       NotifiedApprovedCVRegistrationEvent(
         validatedMailAddress,
         ApprovedCVRegistrationMessage("CV registration application approved")
@@ -94,8 +99,8 @@ case class NotifyRejectedCVRegistrationResultCommand[F[_]: Applicative](
     extends Command[F, NotifiedRejectedCVRegistrationEvent] {
 
   override def execute()
-      : EitherT[F, String, NotifiedRejectedCVRegistrationEvent] =
-    EitherT.rightT[F, String] {
+      : EitherT[F, DomainError, NotifiedRejectedCVRegistrationEvent] =
+    EitherT.rightT[F, DomainError] {
       NotifiedRejectedCVRegistrationEvent(
         invalidMailAddress,
         RejectedCVRegistrationMessage("CV registration application rejected")
