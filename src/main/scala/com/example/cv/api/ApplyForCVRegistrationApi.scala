@@ -23,7 +23,7 @@ class ApplyForCVRegistrationApi extends Api[Future, ApiError, Response] {
       parameters: Array[String]
   )(implicit ec: ExecutionContext): EitherT[Future, ApiError, String] = {
     EitherT.cond[Future](
-      parameters.length == 1 && parameters.head.nonEmpty,
+      parameters.length == 1,
       parameters.head,
       BadRequest(
         s"invalid parameter: ${parameters.mkString("Array(", ", ", ")")}"

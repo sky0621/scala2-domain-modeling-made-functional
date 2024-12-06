@@ -3,6 +3,7 @@ package com.example.cv.domain
 import cats.Applicative
 import cats.data.EitherT
 import com.example.cv.InMemoryDatabase
+import com.example.cv.domain.MailAddress.{InvalidMailAddress, UnvalidatedMailAddress, ValidatedMailAddress}
 import com.example.cv.domain.Model._
 
 import scala.concurrent.ExecutionContext

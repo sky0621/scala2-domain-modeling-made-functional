@@ -2,7 +2,7 @@ package com.example.cv.workflow
 
 import cats.Monad
 import cats.data.EitherT
-import com.example.cv.domain.Model.UnvalidatedMailAddress
+import com.example.cv.domain.MailAddress.UnvalidatedMailAddress
 import com.example.cv.domain._
 
 import scala.concurrent.ExecutionContext
