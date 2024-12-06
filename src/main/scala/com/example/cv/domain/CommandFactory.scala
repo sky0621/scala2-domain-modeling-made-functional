@@ -1,7 +1,9 @@
 package com.example.cv.domain
 
 import cats.Applicative
+import com.example.cv.domain.Birthday.UnvalidatedBirthday
 import com.example.cv.domain.MailAddress.{InvalidMailAddress, UnvalidatedMailAddress, ValidatedMailAddress}
+import com.example.cv.domain.Name.UnvalidatedName
 
 import scala.concurrent.ExecutionContext
 
@@ -13,7 +15,13 @@ object CommandFactory {
     commandName match {
       case "applyForCVRegistration" =>
         ApplyForCVRegistrationCommand[F](
-          UnvalidatedMailAddress(parameters.head)
+          UnvalidatedName(parameters(1), parameters.head),
+          UnvalidatedBirthday(
+            parameters(2).toInt,
+            parameters(3).toInt,
+            parameters(4).toInt
+          ),
+          UnvalidatedMailAddress(parameters(5))
         )
       case "verifyCVRegistration" =>
         VerifyCVRegistrationCommand[F](UnvalidatedMailAddress(parameters.head))

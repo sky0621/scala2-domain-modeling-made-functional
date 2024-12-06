@@ -3,8 +3,10 @@ package com.example.cv.domain
 import cats.Applicative
 import cats.data.EitherT
 import com.example.cv.InMemoryDatabase
+import com.example.cv.domain.Birthday.UnvalidatedBirthday
 import com.example.cv.domain.MailAddress.{InvalidMailAddress, UnvalidatedMailAddress, ValidatedMailAddress}
 import com.example.cv.domain.Message._
+import com.example.cv.domain.Name.UnvalidatedName
 
 import scala.concurrent.ExecutionContext
 
@@ -14,6 +16,8 @@ trait Command[F[_], E <: Event] {
 
 // CV登録を申請する
 case class ApplyForCVRegistrationCommand[F[_]: Applicative](
+    maybeName: UnvalidatedName,
+    maybeBirthday: UnvalidatedBirthday,
     maybeMailAddress: UnvalidatedMailAddress
 )(implicit ec: ExecutionContext)
     extends Command[F, AppliedForCVRegistrationEvent] {

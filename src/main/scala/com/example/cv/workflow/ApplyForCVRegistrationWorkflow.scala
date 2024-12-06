@@ -2,7 +2,9 @@ package com.example.cv.workflow
 
 import cats.Monad
 import cats.data.EitherT
+import com.example.cv.domain.Birthday.UnvalidatedBirthday
 import com.example.cv.domain.MailAddress.UnvalidatedMailAddress
+import com.example.cv.domain.Name.UnvalidatedName
 import com.example.cv.domain._
 
 import scala.concurrent.ExecutionContext
@@ -23,7 +25,11 @@ class ApplyForCVRegistrationWorkflow[
   ): EitherT[F, DomainError, ApplyForCVRegistrationOutputDto] = {
     for {
       appliedForCVRegistrationEvent <-
-        ApplyForCVRegistrationCommand[F](input.maybeMailAddress).execute()
+        ApplyForCVRegistrationCommand[F](
+          input.maybeName,
+          input.maybeBirthday,
+          input.maybeMailAddress
+        ).execute()
 
       verifiedCVRegistrationEvent <-
         VerifyCVRegistrationCommand[F](
@@ -53,11 +59,9 @@ class ApplyForCVRegistrationWorkflow[
 }
 
 case class ApplyForCVRegistrationInputDto(
+    maybeName: UnvalidatedName,
+    maybeBirthday: UnvalidatedBirthday,
     maybeMailAddress: UnvalidatedMailAddress
 ) extends InputDto
-object ApplyForCVRegistrationInputDto {
-  def apply(value: String): ApplyForCVRegistrationInputDto =
-    new ApplyForCVRegistrationInputDto(UnvalidatedMailAddress(value))
-}
 
 case class ApplyForCVRegistrationOutputDto(events: Seq[Event]) extends OutputDto
