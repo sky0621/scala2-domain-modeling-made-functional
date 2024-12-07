@@ -10,7 +10,7 @@ class ApplyForCVRegistrationApi[F[_]](
     saveApplyForCVRegistrationCommand: SaveApplyForCVRegistrationCommand[F],
     verifyCVRegistrationCommand: VerifyCVRegistrationCommand[F],
     notifyCVRegistrationResult: NotifyCVRegistrationResult[F]
-) extends Api[F, Response] {
+) extends Api[F] {
   override def execute(
       request: Request
   )(implicit monad: Monad[F]): EitherT[F, ApiError, Response] = {

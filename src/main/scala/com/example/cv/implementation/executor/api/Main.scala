@@ -1,6 +1,6 @@
 package com.example.cv.implementation.executor.api
 
-import com.example.cv.implementation.api.{ApiError, ApiFactory, Request, Response}
+import com.example.cv.implementation.api.{ApiFactory, Request}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
@@ -15,7 +15,7 @@ object Main {
     val apiName = args(0)
     val parameters = args.drop(1)
 
-    val api = ApiFactory.create[Future, ApiError, Response](apiName)
+    val api = ApiFactory.create[Future](apiName)
     val maybeResponse = api.execute(Request(parameters)).value
     try {
       val eitherResponse = Await.result(maybeResponse, Duration.Inf)
