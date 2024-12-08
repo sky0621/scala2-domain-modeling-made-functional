@@ -5,7 +5,7 @@ import com.example.cv.design.Command.{NotifyCVRegistrationResult, SaveApplyForCV
 import com.example.cv.design.Workflow.ApplyForCVRegistration
 import com.example.cv.implementation.Workflow.{ApplyForCVRegistrationInput, ApplyForCVRegistrationOutput}
 import com.example.cv.implementation.domain.CompoundModel.{UnvalidatedApplyForCVRegistration, VerifiedApplyForCVRegistration}
-import com.example.cv.implementation.domain._
+import com.example.cv.implementation.domain.{DomainError, NotifiedCVRegistrationEvent, SavedApplyForCVRegistrationEvent, VerifiedCVRegistrationEvent}
 
 object Design {
   /*
