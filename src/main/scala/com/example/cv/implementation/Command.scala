@@ -2,26 +2,38 @@ package com.example.cv.implementation
 
 import cats.Applicative
 import cats.data.EitherT
-import com.example.cv.design.Command.{NotifyCVRegistrationResult, SaveApplyForCVRegistration, ValidateCVRegistration}
+import com.example.cv.design.Command.{NotifyCVRegistrationResultCommand, SaveApplyForCVRegistrationCommand, ValidateCVRegistrationCommand}
 import com.example.cv.implementation.domain.CompoundModel.ValidatedApplyForCVRegistration
+import com.example.cv.implementation.domain.Repository.SaveUnvalidatedApplyForCVRegistration
 import com.example.cv.implementation.domain.TokenService.GenerateToken
 import com.example.cv.implementation.domain.ValidatorService.{toValidatedBirthday, toValidatedMailAddress, toValidatedName}
-import com.example.cv.implementation.domain.{DomainError, NotifiedCVRegistrationEvent, ValidatedCVRegistrationEvent}
+import com.example.cv.implementation.domain.{DomainError, NotifiedCVRegistrationEvent, SavedApplyForCVRegistrationEvent, ValidatedCVRegistrationEvent}
 
 object Command {
-  // FIXME: CV申し込み情報の永続化
-  type SaveApplyForCVRegistrationImpl[F[_]] = SaveApplyForCVRegistration[F]
-  def saveApplyForCVRegistration[F[_]: Applicative]
-      : SaveApplyForCVRegistrationImpl[F] =
-    unvalidatedApplyForCVRegistration =>
-      EitherT.rightT[F, DomainError](
-        domain.SavedApplyForCVRegistrationEvent(
-          unvalidatedApplyForCVRegistration
-        )
-      )
+  type SaveApplyForCVRegistrationCommandImpl[F[_]] =
+    SaveUnvalidatedApplyForCVRegistration[
+      F
+    ] => SaveApplyForCVRegistrationCommand[F]
 
-  type ValidateCVRegistrationImpl[F[_]] = ValidateCVRegistration[F]
-  def validateCVRegistration[F[_]: Applicative]: ValidateCVRegistrationImpl[F] =
+  def saveApplyForCVRegistration[F[_]: Applicative]
+      : SaveApplyForCVRegistrationCommandImpl[F] =
+    saveUnvalidatedApplyForCVRegistration =>
+      unvalidatedApplyForCVRegistration =>
+        for {
+          _ <- saveUnvalidatedApplyForCVRegistration(
+            unvalidatedApplyForCVRegistration
+          )
+        } yield EitherT.rightT[F, DomainError](
+          SavedApplyForCVRegistrationEvent(
+            unvalidatedApplyForCVRegistration
+          )
+        )
+
+  type ValidateCVRegistrationCommandImpl[F[_]] =
+    ValidateCVRegistrationCommand[F]
+
+  def validateCVRegistration[F[_]: Applicative]
+      : ValidateCVRegistrationCommandImpl[F] =
     unvalidatedApplyForCVRegistration =>
       EitherT.rightT[F, DomainError](
         ValidatedCVRegistrationEvent(
@@ -38,10 +50,11 @@ object Command {
       )
 
   // FIXME: 本登録用URL（トークンパラメータつき）をメール送信
-  type NotifyCVRegistrationResultImpl[F[_]] =
-    GenerateToken => NotifyCVRegistrationResult[F]
+  type NotifyCVRegistrationResultCommandImpl[F[_]] =
+    GenerateToken => NotifyCVRegistrationResultCommand[F]
+
   def notifyCVRegistrationResult[F[_]: Applicative]
-      : NotifyCVRegistrationResultImpl[F] =
+      : NotifyCVRegistrationResultCommandImpl[F] =
     generateToken =>
       validatedApplyForCVRegistration => {
         val token = generateToken(32)

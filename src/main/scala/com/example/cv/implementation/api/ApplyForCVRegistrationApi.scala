@@ -2,15 +2,15 @@ package com.example.cv.implementation.api
 
 import cats.Monad
 import cats.data.EitherT
-import com.example.cv.implementation.Command.{NotifyCVRegistrationResultImpl, SaveApplyForCVRegistrationImpl, ValidateCVRegistrationImpl}
+import com.example.cv.implementation.Command.{NotifyCVRegistrationResultCommandImpl, SaveApplyForCVRegistrationCommandImpl, ValidateCVRegistrationCommandImpl}
 import com.example.cv.implementation.Workflow.{ApplyForCVRegistrationInput, ApplyForCVRegistrationOutput, applyForCVRegistration}
 import com.example.cv.implementation.api.ApiError.toApiError
 import com.example.cv.implementation.domain.TokenService.GenerateToken
 
 class ApplyForCVRegistrationApi[F[_]](
-                                       saveApplyForCVRegistration: SaveApplyForCVRegistrationImpl[F],
-                                       validateCVRegistration: ValidateCVRegistrationImpl[F],
-                                       notifyCVRegistrationResult: NotifyCVRegistrationResultImpl[F],
+                                       saveApplyForCVRegistration: SaveApplyForCVRegistrationCommandImpl[F],
+                                       validateCVRegistration: ValidateCVRegistrationCommandImpl[F],
+                                       notifyCVRegistrationResult: NotifyCVRegistrationResultCommandImpl[F],
                                        generateToken: GenerateToken
                                      ) extends Api[F] {
   override def execute(
