@@ -15,6 +15,7 @@ import com.example.cv.implementation.domain.CompoundModel.{
   UnvalidatedApplyForCVRegistration,
   ValidatedApplyForCVRegistration
 }
+import com.example.cv.implementation.domain.TokenService.GenerateToken
 import com.example.cv.implementation.domain.{
   DomainError,
   NotifiedCVRegistrationEvent,

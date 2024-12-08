@@ -8,11 +8,12 @@ import scala.util.chaining._
 object TokenService {
   private val AlphaNumericChars =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-  private val TokenLength = 32
 
-  def generateToken: Token = {
+  type GenerateToken = Int => Token
+
+  def generateToken: GenerateToken = tokenLength => {
     val random = new Random
-    (1 to TokenLength)
+    (1 to tokenLength)
       .map(_ => AlphaNumericChars(random.nextInt(AlphaNumericChars.length)))
       .mkString
       .pipe(Token)

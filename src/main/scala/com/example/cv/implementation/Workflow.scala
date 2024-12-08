@@ -4,7 +4,7 @@ import cats.Monad
 import com.example.cv.design.Design.ApplyForCVRegistrationWorkflow
 import com.example.cv.implementation.domain.Birthday.UnvalidatedBirthday
 import com.example.cv.implementation.domain.CompoundModel.UnvalidatedApplyForCVRegistration
-import com.example.cv.implementation.domain.Event
+import com.example.cv.implementation.domain.{Event, TokenService}
 import com.example.cv.implementation.domain.MailAddress.UnvalidatedMailAddress
 import com.example.cv.implementation.domain.Name.UnvalidatedName
 

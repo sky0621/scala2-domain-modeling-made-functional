@@ -2,26 +2,20 @@ package com.example.cv.implementation.api
 
 import cats.Monad
 import cats.data.EitherT
-import com.example.cv.design.Command.{
-  NotifyCVRegistrationResult,
-  SaveApplyForCVRegistration,
-  ValidateCVRegistration
-}
-import com.example.cv.implementation.Workflow.{
-  ApplyForCVRegistrationInput,
-  ApplyForCVRegistrationOutput,
-  applyForCVRegistration
-}
+import com.example.cv.implementation.Command.{NotifyCVRegistrationResultImpl, SaveApplyForCVRegistrationImpl, ValidateCVRegistrationImpl}
+import com.example.cv.implementation.Workflow.{ApplyForCVRegistrationInput, ApplyForCVRegistrationOutput, applyForCVRegistration}
 import com.example.cv.implementation.api.ApiError.toApiError
+import com.example.cv.implementation.domain.TokenService.GenerateToken
 
 class ApplyForCVRegistrationApi[F[_]](
-    saveApplyForCVRegistration: SaveApplyForCVRegistration[F],
-    validateCVRegistration: ValidateCVRegistration[F],
-    notifyCVRegistrationResult: NotifyCVRegistrationResult[F]
-) extends Api[F] {
+                                       saveApplyForCVRegistration: SaveApplyForCVRegistrationImpl[F],
+                                       validateCVRegistration: ValidateCVRegistrationImpl[F],
+                                       notifyCVRegistrationResult: NotifyCVRegistrationResultImpl[F],
+                                       generateToken: GenerateToken
+                                     ) extends Api[F] {
   override def execute(
-      request: Request
-  )(implicit monad: Monad[F]): EitherT[F, ApiError, Response] = {
+                        request: Request
+                      )(implicit monad: Monad[F]): EitherT[F, ApiError, Response] = {
     // @formatter:off
     for {
       input <- ApplyForCVRegistrationApi.parse[F](request.values)(monad)
@@ -29,7 +23,7 @@ class ApplyForCVRegistrationApi[F[_]](
         applyForCVRegistration(monad)(
           saveApplyForCVRegistration,
           validateCVRegistration,
-          notifyCVRegistrationResult
+          notifyCVRegistrationResult(generateToken)
         )(input).leftMap(toApiError)
     } yield ApplyForCVRegistrationResponse(output)
     // @formatter:on
@@ -37,9 +31,9 @@ class ApplyForCVRegistrationApi[F[_]](
 }
 
 object ApplyForCVRegistrationApi {
-  private def parse[F[_]: Monad](
-      parameters: Array[String]
-  ): EitherT[F, ApiError, ApplyForCVRegistrationInput] = {
+  private def parse[F[_] : Monad](
+                                   parameters: Array[String]
+                                 ): EitherT[F, ApiError, ApplyForCVRegistrationInput] = {
     EitherT.cond[F](
       parameters.length == 6,
       ApplyForCVRegistrationInput(
@@ -58,6 +52,6 @@ object ApplyForCVRegistrationApi {
 }
 
 case class ApplyForCVRegistrationResponse(output: ApplyForCVRegistrationOutput)
-    extends Response {
+  extends Response {
   override def show(): Unit = output.events.foreach(println)
 }

@@ -2,28 +2,17 @@ package com.example.cv.implementation
 
 import cats.Applicative
 import cats.data.EitherT
-import com.example.cv.design.Command.{
-  NotifyCVRegistrationResult,
-  SaveApplyForCVRegistration,
-  ValidateCVRegistration
-}
+import com.example.cv.design.Command.{NotifyCVRegistrationResult, SaveApplyForCVRegistration, ValidateCVRegistration}
 import com.example.cv.implementation.domain.CompoundModel.ValidatedApplyForCVRegistration
-import com.example.cv.implementation.domain.ValidatorService.{
-  toValidatedBirthday,
-  toValidatedMailAddress,
-  toValidatedName
-}
-import com.example.cv.implementation.domain.{
-  DomainError,
-  NotifiedCVRegistrationEvent,
-  TokenService,
-  ValidatedCVRegistrationEvent
-}
+import com.example.cv.implementation.domain.TokenService.GenerateToken
+import com.example.cv.implementation.domain.ValidatorService.{toValidatedBirthday, toValidatedMailAddress, toValidatedName}
+import com.example.cv.implementation.domain.{DomainError, NotifiedCVRegistrationEvent, ValidatedCVRegistrationEvent}
 
 object Command {
   // FIXME: CV申し込み情報の永続化
-  def saveApplyForCVRegistrationCommand[F[_]: Applicative]
-      : SaveApplyForCVRegistration[F] =
+  type SaveApplyForCVRegistrationImpl[F[_]] = SaveApplyForCVRegistration[F]
+  def saveApplyForCVRegistration[F[_]: Applicative]
+      : SaveApplyForCVRegistrationImpl[F] =
     unvalidatedApplyForCVRegistration =>
       EitherT.rightT[F, DomainError](
         domain.SavedApplyForCVRegistrationEvent(
@@ -31,8 +20,8 @@ object Command {
         )
       )
 
-  def validateCVRegistrationCommand[F[_]: Applicative]
-      : ValidateCVRegistration[F] =
+  type ValidateCVRegistrationImpl[F[_]] = ValidateCVRegistration[F]
+  def validateCVRegistration[F[_]: Applicative]: ValidateCVRegistrationImpl[F] =
     unvalidatedApplyForCVRegistration =>
       EitherT.rightT[F, DomainError](
         ValidatedCVRegistrationEvent(
@@ -49,16 +38,18 @@ object Command {
       )
 
   // FIXME: 本登録用URL（トークンパラメータつき）をメール送信
-  // FIXME: トークンジェネレーターを依存で渡す
+  type NotifyCVRegistrationResultImpl[F[_]] =
+    GenerateToken => NotifyCVRegistrationResult[F]
   def notifyCVRegistrationResult[F[_]: Applicative]
-      : NotifyCVRegistrationResult[F] =
-    validatedApplyForCVRegistration => {
-      val token = TokenService.generateToken
-      EitherT.rightT[F, DomainError](
-        NotifiedCVRegistrationEvent(
-          validatedApplyForCVRegistration,
-          token
+      : NotifyCVRegistrationResultImpl[F] =
+    generateToken =>
+      validatedApplyForCVRegistration => {
+        val token = generateToken(32)
+        EitherT.rightT[F, DomainError](
+          NotifiedCVRegistrationEvent(
+            validatedApplyForCVRegistration,
+            token
+          )
         )
-      )
-    }
+      }
 }
