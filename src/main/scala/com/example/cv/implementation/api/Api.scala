@@ -11,4 +11,6 @@ trait Api[F[_]] {
 
 case class Request(values: Array[String])
 
-trait Response
+trait Response {
+  def show(): Unit
+}

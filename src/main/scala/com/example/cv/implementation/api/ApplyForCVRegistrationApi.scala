@@ -2,8 +2,16 @@ package com.example.cv.implementation.api
 
 import cats.Monad
 import cats.data.EitherT
-import com.example.cv.design.Command.{NotifyCVRegistrationResult, SaveApplyForCVRegistrationCommand, VerifyCVRegistrationCommand}
-import com.example.cv.implementation.Workflow.{ApplyForCVRegistrationInput, ApplyForCVRegistrationOutput, applyForCVRegistration}
+import com.example.cv.design.Command.{
+  NotifyCVRegistrationResult,
+  SaveApplyForCVRegistrationCommand,
+  VerifyCVRegistrationCommand
+}
+import com.example.cv.implementation.Workflow.{
+  ApplyForCVRegistrationInput,
+  ApplyForCVRegistrationOutput,
+  applyForCVRegistration
+}
 import com.example.cv.implementation.api.ApiError.toApiError
 
 class ApplyForCVRegistrationApi[F[_]](
@@ -48,4 +56,6 @@ object ApplyForCVRegistrationApi {
 }
 
 case class ApplyForCVRegistrationResponse(output: ApplyForCVRegistrationOutput)
-    extends Response
+    extends Response {
+  override def show(): Unit = output.events.foreach(println)
+}

@@ -1,8 +1,8 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="ApiMain - applyForCVRegistration - fail" type="Application" factoryName="Application">
+  <configuration default="false" name="ApiMain - applyForCVRegistration - fail2" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="com.example.cv.implementation.executor.api.Main" />
     <module name="cv-system-consider" />
-    <option name="PROGRAM_PARAMETERS" value="applyForCVRegistration " />
+    <option name="PROGRAM_PARAMETERS" value="applyForCVRegistration 山田 太郎 1990 13 22 test.example.com" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="com.example.cv.executor.api.*" />

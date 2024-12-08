@@ -21,7 +21,7 @@ object Main {
       val eitherResponse = Await.result(maybeResponse, Duration.Inf)
       eitherResponse match {
         case Left(error)  => println(s"Error: $error")
-        case Right(value) => println(s"Response: $value")
+        case Right(value) => value.show()
       }
     } catch {
       case ex: Exception => println(s"Exception occurred: ${ex.getMessage}")
