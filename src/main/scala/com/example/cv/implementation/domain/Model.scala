@@ -1,5 +1,9 @@
 package com.example.cv.implementation.domain
 
+object Model {
+  case class Token(value: String)
+}
+
 object Message {
   case class ApprovedCVRegistrationMessage(value: String)
 
@@ -7,17 +11,15 @@ object Message {
 }
 
 object Name {
-  case class UnvalidatedName(givenName: String, familyName: String) {
-    def isValid: Boolean = givenName.nonEmpty && familyName.nonEmpty
-  }
+  case class UnvalidatedName(givenName: String, familyName: String)
 
-  sealed trait VerifiedName
+  sealed trait ValidatedName
 
-  case class ValidatedName(givenName: String, familyName: String)
-    extends VerifiedName
+  case class ValidName(givenName: String, familyName: String)
+    extends ValidatedName
 
   case class InvalidName(givenName: String, familyName: String)
-    extends VerifiedName
+    extends ValidatedName
 }
 
 object Birthday {
@@ -30,13 +32,13 @@ object Birthday {
     // @formatter:on
   }
 
-  sealed trait VerifiedBirthday
+  sealed trait ValidatedBirthday
 
-  case class ValidatedBirthday(year: Int, month: Int, day: Int)
-    extends VerifiedBirthday
+  case class ValidBirthday(year: Int, month: Int, day: Int)
+    extends ValidatedBirthday
 
   case class InvalidBirthday(year: Int, month: Int, day: Int)
-    extends VerifiedBirthday
+    extends ValidatedBirthday
 }
 
 object MailAddress {
@@ -45,9 +47,9 @@ object MailAddress {
       "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$".r.matches(value)
   }
 
-  sealed trait VerifiedMailAddress
+  sealed trait ValidatedMailAddress
 
-  case class ValidatedMailAddress(value: String) extends VerifiedMailAddress
+  case class ValidMailAddress(value: String) extends ValidatedMailAddress
 
-  case class InvalidMailAddress(value: String) extends VerifiedMailAddress
+  case class InvalidMailAddress(value: String) extends ValidatedMailAddress
 }

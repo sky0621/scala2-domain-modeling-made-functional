@@ -1,8 +1,8 @@
 package com.example.cv.implementation.domain
 
-import com.example.cv.implementation.domain.Birthday.{UnvalidatedBirthday, VerifiedBirthday}
-import com.example.cv.implementation.domain.MailAddress.{UnvalidatedMailAddress, VerifiedMailAddress}
-import com.example.cv.implementation.domain.Name.{UnvalidatedName, VerifiedName}
+import com.example.cv.implementation.domain.Birthday.{UnvalidatedBirthday, ValidatedBirthday}
+import com.example.cv.implementation.domain.MailAddress.{UnvalidatedMailAddress, ValidatedMailAddress}
+import com.example.cv.implementation.domain.Name.{UnvalidatedName, ValidatedName}
 
 object CompoundModel {
   case class UnvalidatedApplyForCVRegistration(
@@ -11,9 +11,9 @@ object CompoundModel {
       unvalidatedMailAddress: UnvalidatedMailAddress
   )
 
-  case class VerifiedApplyForCVRegistration(
-      verifiedName: VerifiedName,
-      verifiedBirthday: VerifiedBirthday,
-      verifiedMailAddress: VerifiedMailAddress
+  case class ValidatedApplyForCVRegistration(
+      validatedName: ValidatedName,
+      validatedBirthday: ValidatedBirthday,
+      validatedMailAddress: ValidatedMailAddress
   )
 }

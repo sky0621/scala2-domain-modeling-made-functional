@@ -27,7 +27,7 @@ object Workflow {
 
               notifiedCVRegistrationEvent <-
                 notifyCVRegistrationResult(
-                  verifiedCVRegistrationEvent.verifiedApplyForCVRegistration
+                  verifiedCVRegistrationEvent.validatedApplyForCVRegistration
                 )
             } yield {
               ApplyForCVRegistrationOutput(
