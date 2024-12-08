@@ -10,34 +10,36 @@ import com.example.cv.implementation.domain.Name.UnvalidatedName
 
 object Workflow {
   def applyForCVRegistration[F[_]: Monad]: ApplyForCVRegistrationWorkflow[F] =
-    saveApplyForCVRegistrationCommand =>
-      verifyCVRegistrationCommand =>
-        notifyCVRegistrationResult =>
-          input =>
-            for {
-              savedApplyForCVRegistrationEvent <-
-                saveApplyForCVRegistrationCommand(
-                  input.toUnvalidatedApplyForCVRegistration
-                )
+    (
+        saveApplyForCVRegistration,
+        validateCVRegistration,
+        notifyCVRegistrationResult
+    ) =>
+      input =>
+        for {
+          savedApplyForCVRegistrationEvent <-
+            saveApplyForCVRegistration(
+              input.toUnvalidatedApplyForCVRegistration
+            )
 
-              verifiedCVRegistrationEvent <-
-                verifyCVRegistrationCommand(
-                  savedApplyForCVRegistrationEvent.unvalidatedApplyForCVRegistration
-                )
+          verifiedCVRegistrationEvent <-
+            validateCVRegistration(
+              savedApplyForCVRegistrationEvent.unvalidatedApplyForCVRegistration
+            )
 
-              notifiedCVRegistrationEvent <-
-                notifyCVRegistrationResult(
-                  verifiedCVRegistrationEvent.validatedApplyForCVRegistration
-                )
-            } yield {
-              ApplyForCVRegistrationOutput(
-                Seq(
-                  savedApplyForCVRegistrationEvent,
-                  verifiedCVRegistrationEvent,
-                  notifiedCVRegistrationEvent
-                )
-              )
-            }
+          notifiedCVRegistrationEvent <-
+            notifyCVRegistrationResult(
+              verifiedCVRegistrationEvent.validatedApplyForCVRegistration
+            )
+        } yield {
+          ApplyForCVRegistrationOutput(
+            Seq(
+              savedApplyForCVRegistrationEvent,
+              verifiedCVRegistrationEvent,
+              notifiedCVRegistrationEvent
+            )
+          )
+        }
 
   case class ApplyForCVRegistrationInput(
       givenName: String,

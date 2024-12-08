@@ -1,7 +1,7 @@
 package com.example.cv.implementation.api
 
 import cats.Monad
-import com.example.cv.implementation.Command.{notifyCVRegistrationResult, saveApplyForCVRegistrationCommand, verifyCVRegistrationCommand}
+import com.example.cv.implementation.Command.{notifyCVRegistrationResult, saveApplyForCVRegistrationCommand, validateCVRegistrationCommand}
 
 object ApiFactory {
   def create[F[_]: Monad](
@@ -10,7 +10,7 @@ object ApiFactory {
     case "applyForCVRegistration" =>
       new ApplyForCVRegistrationApi[F](
         saveApplyForCVRegistrationCommand[F],
-        verifyCVRegistrationCommand[F],
+        validateCVRegistrationCommand[F],
         notifyCVRegistrationResult[F]
       ).asInstanceOf[Api[F]]
     case _ => throw new IllegalArgumentException(apiName)

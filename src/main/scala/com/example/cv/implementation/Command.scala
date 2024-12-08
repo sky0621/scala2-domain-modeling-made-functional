@@ -2,15 +2,28 @@ package com.example.cv.implementation
 
 import cats.Applicative
 import cats.data.EitherT
-import com.example.cv.design.Command.{NotifyCVRegistrationResult, SaveApplyForCVRegistrationCommand, VerifyCVRegistrationCommand}
+import com.example.cv.design.Command.{
+  NotifyCVRegistrationResult,
+  SaveApplyForCVRegistration,
+  ValidateCVRegistration
+}
 import com.example.cv.implementation.domain.CompoundModel.ValidatedApplyForCVRegistration
-import com.example.cv.implementation.domain.ValidatorService.{toValidatedBirthday, toValidatedMailAddress, toValidatedName}
-import com.example.cv.implementation.domain.{DomainError, NotifiedCVRegistrationEvent, TokenService, ValidatedCVRegistrationEvent}
+import com.example.cv.implementation.domain.ValidatorService.{
+  toValidatedBirthday,
+  toValidatedMailAddress,
+  toValidatedName
+}
+import com.example.cv.implementation.domain.{
+  DomainError,
+  NotifiedCVRegistrationEvent,
+  TokenService,
+  ValidatedCVRegistrationEvent
+}
 
 object Command {
   // FIXME: CV申し込み情報の永続化
   def saveApplyForCVRegistrationCommand[F[_]: Applicative]
-      : SaveApplyForCVRegistrationCommand[F] =
+      : SaveApplyForCVRegistration[F] =
     unvalidatedApplyForCVRegistration =>
       EitherT.rightT[F, DomainError](
         domain.SavedApplyForCVRegistrationEvent(
@@ -18,8 +31,8 @@ object Command {
         )
       )
 
-  def verifyCVRegistrationCommand[F[_]: Applicative]
-      : VerifyCVRegistrationCommand[F] =
+  def validateCVRegistrationCommand[F[_]: Applicative]
+      : ValidateCVRegistration[F] =
     unvalidatedApplyForCVRegistration =>
       EitherT.rightT[F, DomainError](
         ValidatedCVRegistrationEvent(

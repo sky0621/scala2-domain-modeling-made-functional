@@ -1,11 +1,26 @@
 package com.example.cv.design
 
 import cats.data.EitherT
-import com.example.cv.design.Command.{NotifyCVRegistrationResult, SaveApplyForCVRegistrationCommand, VerifyCVRegistrationCommand}
+import com.example.cv.design.Command.{
+  NotifyCVRegistrationResult,
+  SaveApplyForCVRegistration,
+  ValidateCVRegistration
+}
 import com.example.cv.design.Workflow.ApplyForCVRegistration
-import com.example.cv.implementation.Workflow.{ApplyForCVRegistrationInput, ApplyForCVRegistrationOutput}
-import com.example.cv.implementation.domain.CompoundModel.{UnvalidatedApplyForCVRegistration, ValidatedApplyForCVRegistration}
-import com.example.cv.implementation.domain.{DomainError, NotifiedCVRegistrationEvent, SavedApplyForCVRegistrationEvent, ValidatedCVRegistrationEvent}
+import com.example.cv.implementation.Workflow.{
+  ApplyForCVRegistrationInput,
+  ApplyForCVRegistrationOutput
+}
+import com.example.cv.implementation.domain.CompoundModel.{
+  UnvalidatedApplyForCVRegistration,
+  ValidatedApplyForCVRegistration
+}
+import com.example.cv.implementation.domain.{
+  DomainError,
+  NotifiedCVRegistrationEvent,
+  SavedApplyForCVRegistrationEvent,
+  ValidatedCVRegistrationEvent
+}
 
 object Design {
   /*
@@ -17,11 +32,12 @@ object Design {
    * ・申請結果を通知する。
    */
   // @formatter:off
-  type ApplyForCVRegistrationWorkflow[F[_]] =
-    SaveApplyForCVRegistrationCommand[F] =>
-    VerifyCVRegistrationCommand[F] =>
-    NotifyCVRegistrationResult[F] =>
-      ApplyForCVRegistration[F]
+  type ApplyForCVRegistrationWorkflow[F[_]] = (
+    SaveApplyForCVRegistration[F],
+    ValidateCVRegistration[F],
+    NotifyCVRegistrationResult[F],
+  ) =>
+    ApplyForCVRegistration[F]
   // @formatter:on
 
 }
@@ -35,10 +51,10 @@ object Workflow {
 // @formatter:off
 object Command {
   // CV登録申請情報を保存する
-  type SaveApplyForCVRegistrationCommand[F[_]] = UnvalidatedApplyForCVRegistration => EitherT[F, DomainError, SavedApplyForCVRegistrationEvent]
+  type SaveApplyForCVRegistration[F[_]] = UnvalidatedApplyForCVRegistration => EitherT[F, DomainError, SavedApplyForCVRegistrationEvent]
 
   // CV登録申請内容を検証する
-  type VerifyCVRegistrationCommand[F[_]] = UnvalidatedApplyForCVRegistration => EitherT[F, DomainError, ValidatedCVRegistrationEvent]
+  type ValidateCVRegistration[F[_]] = UnvalidatedApplyForCVRegistration => EitherT[F, DomainError, ValidatedCVRegistrationEvent]
 
   // CV登録申請結果を通知する
   type NotifyCVRegistrationResult[F[_]] = ValidatedApplyForCVRegistration => EitherT[F, DomainError, NotifiedCVRegistrationEvent]
