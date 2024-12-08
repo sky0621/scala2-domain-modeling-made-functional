@@ -1,29 +1,12 @@
 package com.example.cv.design
 
 import cats.data.EitherT
-import com.example.cv.design.Command.{
-  NotifyCVRegistrationResult,
-  SaveApplyForCVRegistration,
-  ValidateCVRegistration
-}
-import com.example.cv.design.Workflow.ApplyForCVRegistration
-import com.example.cv.implementation.Workflow.{
-  ApplyForCVRegistrationInput,
-  ApplyForCVRegistrationOutput
-}
-import com.example.cv.implementation.domain.CompoundModel.{
-  UnvalidatedApplyForCVRegistration,
-  ValidatedApplyForCVRegistration
-}
-import com.example.cv.implementation.domain.TokenService.GenerateToken
-import com.example.cv.implementation.domain.{
-  DomainError,
-  NotifiedCVRegistrationEvent,
-  SavedApplyForCVRegistrationEvent,
-  ValidatedCVRegistrationEvent
-}
+import com.example.cv.design.Command.{NotifyCVRegistrationResult, SaveApplyForCVRegistration, ValidateCVRegistration}
+import com.example.cv.implementation.Workflow.{ApplyForCVRegistrationInput, ApplyForCVRegistrationOutput}
+import com.example.cv.implementation.domain.CompoundModel.{UnvalidatedApplyForCVRegistration, ValidatedApplyForCVRegistration}
+import com.example.cv.implementation.domain.{DomainError, NotifiedCVRegistrationEvent, SavedApplyForCVRegistrationEvent, ValidatedCVRegistrationEvent}
 
-object Design {
+object Workflow {
   /*
    * CV登録を申請する
    *
@@ -38,16 +21,9 @@ object Design {
     ValidateCVRegistration[F],
     NotifyCVRegistrationResult[F],
   ) =>
-    ApplyForCVRegistration[F]
+    ApplyForCVRegistrationInput => EitherT[F, DomainError, ApplyForCVRegistrationOutput]
   // @formatter:on
-
 }
-
-// @formatter:off
-object Workflow {
-  type ApplyForCVRegistration[F[_]] = ApplyForCVRegistrationInput => EitherT[F, DomainError, ApplyForCVRegistrationOutput]
-}
-// @formatter:on
 
 // @formatter:off
 object Command {
