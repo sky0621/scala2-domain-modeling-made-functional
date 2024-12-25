@@ -2,47 +2,63 @@ package com.example.cv.implementation.api
 
 import cats.Monad
 import cats.data.EitherT
-import com.example.cv.implementation.Command.{NotifyCVRegistrationResultCommandImpl, SaveApplyForCVRegistrationCommandImpl, ValidateCVRegistrationCommandImpl}
-import com.example.cv.implementation.Workflow.{ApplyForCVRegistrationInput, ApplyForCVRegistrationOutput, applyForCVRegistration}
+import com.example.cv.design.Service.GenerateToken
+import com.example.cv.implementation.Command.NotifyCVRegistrationResultCommandImpl
+import com.example.cv.implementation.Workflow.applyForCVRegistration
 import com.example.cv.implementation.api.ApiError.toApiError
-import com.example.cv.implementation.domain.TokenService.GenerateToken
+import com.example.cv.implementation.domain.Birthday.UnvalidatedBirthday
+import com.example.cv.implementation.domain.CompoundModel.UnvalidatedApplyForCVRegistration
+import com.example.cv.implementation.domain.Event
+import com.example.cv.implementation.domain.MailAddress.UnvalidatedMailAddress
+import com.example.cv.implementation.domain.Name.UnvalidatedName
+import com.example.cv.implementation.domain.cvregistration.CVRegistrationValidator
+import com.example.cv.implementation.infra.CVRegistrationInfra
 
-class ApplyForCVRegistrationApi[F[_]](
-                                       saveApplyForCVRegistration: SaveApplyForCVRegistrationCommandImpl[F],
-                                       validateCVRegistration: ValidateCVRegistrationCommandImpl[F],
-                                       notifyCVRegistrationResult: NotifyCVRegistrationResultCommandImpl[F],
-                                       generateToken: GenerateToken
-                                     ) extends Api[F] {
+import scala.concurrent.{ExecutionContext, Future}
+
+class ApplyForCVRegistrationApi(
+                                 saveUnvalidatedApply: CVRegistrationInfra.SaveUnvalidatedApply[Future],
+                                 validate: CVRegistrationValidator.ValidateCVRegistration[Future],
+                                 notifyCVRegistrationResult: NotifyCVRegistrationResultCommandImpl[Future],
+                                 generateToken: GenerateToken
+                               ) extends Api[Future] {
+
   override def execute(
                         request: Request
-                      )(implicit monad: Monad[F]): EitherT[F, ApiError, Response] = {
+                      )(
+                        implicit
+                        monad: Monad[Future],
+                        ec: ExecutionContext
+                      ): EitherT[Future, ApiError, Response] = {
     // @formatter:off
     for {
-      input <- ApplyForCVRegistrationApi.parse[F](request.values)(monad)
-      output <-
+      unvalidatedApplyForCVRegistration <- ApplyForCVRegistrationApi.parse[Future](request.values)(monad)
+      events <-
         applyForCVRegistration(monad)(
-          saveApplyForCVRegistration,
-          validateCVRegistration,
+          saveUnvalidatedApply(ec),
+          validate,
           notifyCVRegistrationResult(generateToken)
-        )(input).leftMap(toApiError)
-    } yield ApplyForCVRegistrationResponse(output)
+        )(unvalidatedApplyForCVRegistration).leftMap(toApiError)
+    } yield ApplyForCVRegistrationResponse(events)
     // @formatter:on
   }
 }
 
 object ApplyForCVRegistrationApi {
+
   private def parse[F[_] : Monad](
                                    parameters: Array[String]
-                                 ): EitherT[F, ApiError, ApplyForCVRegistrationInput] = {
+                                 ): EitherT[F, ApiError, UnvalidatedApplyForCVRegistration] = {
     EitherT.cond[F](
       parameters.length == 6,
-      ApplyForCVRegistrationInput(
-        parameters.head,
-        parameters(1),
-        parameters(2).toInt,
-        parameters(3).toInt,
-        parameters(4).toInt,
-        parameters(5)
+      UnvalidatedApplyForCVRegistration(
+        unvalidatedName = UnvalidatedName(parameters.head, parameters(1)),
+        unvalidatedBirthday = UnvalidatedBirthday(
+          parameters(2).toInt,
+          parameters(3).toInt,
+          parameters(4).toInt
+        ),
+        unvalidatedMailAddress = UnvalidatedMailAddress(parameters(5))
       ),
       BadRequest(
         s"invalid parameter: ${parameters.mkString("Array(", ", ", ")")}"
@@ -51,7 +67,6 @@ object ApplyForCVRegistrationApi {
   }
 }
 
-case class ApplyForCVRegistrationResponse(output: ApplyForCVRegistrationOutput)
-  extends Response {
-  override def show(): Unit = output.events.foreach(println)
+case class ApplyForCVRegistrationResponse(events: Seq[Event]) extends Response {
+  override def show(): Unit = events.foreach(println)
 }

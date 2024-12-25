@@ -1,7 +1,8 @@
 package com.example.cv.implementation.domain
 
 object Model {
-  case class Token(value: String)
+  case class Token(value: String) extends AnyVal
+  case class TokenLength(value: Int) extends AnyVal
 }
 
 object Name {
@@ -29,7 +30,7 @@ object Birthday {
 }
 
 object MailAddress {
-  case class UnvalidatedMailAddress(value: String)
+  case class UnvalidatedMailAddress(value: String) extends AnyVal
 
   sealed trait ValidatedMailAddress
 

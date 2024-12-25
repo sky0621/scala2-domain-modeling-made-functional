@@ -4,7 +4,7 @@ import com.example.cv.implementation.api.{ApiFactory, Request}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -14,6 +14,8 @@ object Main {
     }
     val apiName = args(0)
     val parameters = args.drop(1)
+
+    val ec: ExecutionContext = ThreadLocalExecutionContext.get
 
     val api = ApiFactory.create[Future](apiName)
     val maybeResponse = api.execute(Request(parameters)).value
